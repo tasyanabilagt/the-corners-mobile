@@ -56,3 +56,34 @@ Widget `MaterialApp` berfungsi sebagai pembungkus utama aplikasi Flutter yang me
 
 `BuildContext` adalah objek yang merepresentasikan lokasi sebuah widget di dalam widget tree. BuildContext digunakan Flutter untuk mengetahui posisi widget, mengakses parent widget, dan mendapatkan data seperti tema, ukuran layar, atau memanggil fungsi yang membutuhkan konteks tampilan, misalnya menampilkan SnackBar atau melakukan navigasi. BuildContext penting karena memungkinkan widget berinteraksi dengan widget lain di tree. Di dalam metode `build`, BuildContext diberikan sebagai parameter sehingga widget dapat membangun UI berdasarkan konteksnya. Contohnya, `Theme.of(context)` untuk mengambil tema, dan `ScaffoldMessenger.of(context)` untuk menampilkan SnackBar.
 
+### Tugas 8
+## 1. Perbedaan antara Navigator.push() dan Navigator.pushReplacement() pada Flutter.
+Navigator.push() berfungsi untuk menambahkan halaman baru di bagian atas stack dari halaman yang sedang aktif. Ketika pengguna menekan tombol 'Back', maka halaman sebelumnya akan muncul kembali dengan mengambil halaman dari top of stack yang disimpan. Contoh penggunaan dalam aplikasi: saat user membuka halaman Add Product atau Tambah Produk dari Home page melalui drawer. 
+
+Sementara itu, Navigator.pushReplacement() berfungsi untuk mengganti halaman aktif dengan halaman baru. Halaman lama akan dihapus dari stack, jadi tidak bisa dikembalikan dengan tombol 'Back' karena halaman tersebut sudah tidak ada pada stack. Dalam implementasi, Navigator.pushReplacement() cocok untuk fitur checkout karena ketika pengguna checkout aksinya tidak dapat dikembalikan, sehingga kita tidak perlu menyimpan halaman sebelumnya.
+
+## 2. Pemanfaatan Hierarchy Widget (Scaffold, AppBar, Drawer)
+Scaffold berfungsi sebagai penyedia struktur dasar dari setiap halaman yang dibuat (AppBar, Drawer, dan body)
+AppBar berfungsi untuk menampilkan judul halaman dan memberikan identitas yang konsisten
+Drawer berfungsi sebagai navigasi utama antar halaman, misalnya antara Home Page dan Add Product Page. Dengan memanfaatkan Hierarchy Widget ini, setiap halaman memiliki konsistensi yang sama, sehingga pengalaman pengguna bisa terasa lebih nyaman dan stabil. 
+
+## 3. Kelebihan menggunakan layout widget seperti Padding, SingleChildScrollView, dan ListView saat menampilkan elemen-elemen form.
+Widget layput seperti Padding, SingleChildSrollView dan ListView berguna untuk mengatur tata letak dan responsivitas form itu sendiri.
+Padding berfungsi untuk memberi jarak agar elemen posisinya tidak terlalu rapat. Contoh penggunaan: Setiap TextFormField dibungkus dengan Padding(all: 8.0), artinya dalam form jika terdapat field berupa text, jarak antara field tersebut di setiap sisi terhadap border adalah 8.0
+
+SingleChildScrollView berfungsi agar setiap halaman dapat discroll. Hal ini penting agar form yang dibuat tidak overflow saat keyboard muncul jika memiliki banyak field input. Contoh penggunaan: Seluruh form dibungkus dengan SingleChildScrollView, salah satunya form create product yang dapat discroll.
+
+ListView biasanya dipakai di halaman daftar produk, untuk menampilkan banyak item dalam mode scroll view. Contoh penggunaan: Nantinya akan digunakan untuk daftar produk yang ada di The Corners (Future use)
+
+Kelebihan pengunaan layout widget adalah tampilan form menjadi lebih rapi, konsisten, tidak tumpang tindih, dan tetap nyaman dilihat meskipun layar kecil.
+
+## 4. Bagaimana kamu menyesuaikan warna tema agar aplikasi Football Shop memiliki identitas visual yang konsisten dengan brand toko?
+Untuk menunjukkan identitas toko The Corners, aplikasi ini menggunakan kombinasi warna, struktur halaman, dan gaya desain yang konsisten dengan versi web-nya.
+
+Warna biru digunakan sebagai warna utama (primary color) karena merepresentasikan profesionalitas, kepercayaan, dan kestabilan brand. Warna merah dipakai sebagai warna aksen pada elemen penting seperti logo “The Corners” dan tombol aksi (misalnya tombol Save di halaman Add Product) untuk memberikan kesan energik dan bersemangat khas dunia olahraga.
+
+Selain itu, warna putih dan abu muda dipilih sebagai latar belakang untuk menjaga kesan bersih dan modern, sekaligus membantu fokus pengguna tetap pada konten produk. Semua elemen antarmuka seperti kartu, form input, dan tombol menggunakan rounded corners serta bayangan halus (soft shadow) agar tampilannya terasa modern dan ringan.
+
+Struktur layout disusun secara konsisten menggunakan Scaffold, AppBar, dan Drawer pada setiap halaman supaya pengalaman pengguna terasa seragam. Sementara warna pada tombol besar di halaman utama (biru untuk All Products, hijau untuk My Products, dan merah untuk Create Product) tetap dipertahankan sebagai ciri khas visual utama dari The Corners.
+
+Dengan cara ini, aplikasi Flutter The Corners tetap mempertahankan identitas visual toko yang sporty, clean, dan profesional, sekaligus memberikan pengalaman pengguna yang familiar antara versi web dan mobile-nya.

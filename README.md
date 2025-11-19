@@ -87,3 +87,36 @@ Selain itu, warna putih dan abu muda dipilih sebagai latar belakang untuk menjag
 Struktur layout disusun secara konsisten menggunakan Scaffold, AppBar, dan Drawer pada setiap halaman supaya pengalaman pengguna terasa seragam. Sementara warna pada tombol besar di halaman utama (biru untuk All Products, hijau untuk My Products, dan merah untuk Create Product) tetap dipertahankan sebagai ciri khas visual utama dari The Corners.
 
 Dengan cara ini, aplikasi Flutter The Corners tetap mempertahankan identitas visual toko yang sporty, clean, dan profesional, sekaligus memberikan pengalaman pengguna yang familiar antara versi web dan mobile-nya.
+
+### Tugas 9
+## 1. Mengapa perlu membuat model Dart saat mengambil/mengirim data JSON? Apa konsekuensi jika langsung memetakan Map<String, dynamic> tanpa model?
+Pembuatan model diperlukan untuk menyediakan blueprint atau kerangka kerja data yang lebih terstruktur. Dengan model, tipe data ditentukan secara spesifik untuk setiap field. Contohnya product name menggunakan String, dan price menggunakan tipe data integer yang disesuaikan dengan web service. Dengan adanya model, kode lebih terjamin tipenya sehingga dapat mengurangi bug. Hal ini tentunya akan memudahkan pengembangan karena kode lebih terstruktur. Jika model tidak dibuat, Aplikasi tidak selalu error, tetapi kita perlu melakukan validasi tipe data untuk setiap field yang ada. Tentunya risiko terjadinya runtime error sangat tinggi. Sebaiknya kita membuat model agar mencegah terjadinya runtime error dan validasi akan dilakukan ketika compile, sehingga hanya memungkinkan terjadi compile error. 
+
+## 2. Apa fungsi package http dan CookieRequest dan apa perbedaan peran keduanya
+Library http berfungsi sebagai klien dasar untuk melakukan komunikasi jaringan HTTP dari aplikasi flutter. Library ini akan menangani pengiriman request seperti GET atau POST dan penerimaan response dari server. Sementara itu, CookieRequest dari package pbp_django_auth adalah ekstensi yang dibangun di atas http dengan tujuan yang lebih spesifik yaitu untuk menangani manajemen cookie session pada Django setelah pengguna berhasil melakukan login. CookieRequest secara otomatis akan menyimpan session cookie yang dikirim oleh server dan melampirkannya ke setiap request berikutnya. Fungsi ini sangat penting untuk menjaga status autentikasi pengguna antar request tanpa perlu mengirim ulang kredensial.
+
+## 3. Mengapa instance CookieRequest perlu untuk dibagikan ke semua komponen di aplikasi flutter?
+Instance dari CookieRequest perlu dibagikan ke seluruh komponen aplikasi karena instance tersebut menyimpan state sesi secara terpusat. Instance ini membawa informasi penting mengenai status login dan cookie session yang valid. Jika setiap komponen membuat instance CookieRequest sendiri-sendiri, cookie session yang diperoleh saat pengguna login akan hilang dan request dari komponen lain akan dianggap sebagai pengguna yang belum terautentikasi oleh server Django. Dengan hanya menggunakan satu global instance, semua widget dapat mengakses status login yang konsisten, sehingga request yang diberikan ke Django selalu membawa cookie yang benar. 
+
+## 4. Mekanisme pengiriman data
+Mekanisme pengiriman data melibatkan 4 tahap utama.
+
+Tahap pertama adalah input dan konversi, di mana data dari form input flutter akan dikumpulkan dan dikonversi ke dalam format JSON oleh package dart:convert, 
+
+Selanjutnya akan dilakukan transmisi data. Flutter akan mengirim request POST ke endpoint Django menggunakan instance CookieRequest. 
+
+Tahap ke tiga adalah pemrosesan server. Saat Django menerima data JSON, ia akan memvalidasi dan membersihkan data (strip_tags), lalu menyimpannya ke dalam database. 
+
+Tahap ke empat atau tahap terakhir, proses pengambilan dan penampilan data. Agar daftar dapat ditampilkan, flutter mengirim request GET ke endpoint JSON (/json/). Response JSON yang diterima akan diolah oleh ProductEntry.fromJSON menjadi sebuah list object Dart yang kemudian akan ditampilkan pada widget ListView.builder melalui FutureBuilder.
+
+## 5. Mekanisme Autentikasi (Login, Register, Logout)
+Mekanisme autentikasi adalah serangkaian request yang bertujuan untuk menukar kredensial dengan cookie session. Saat pengguna melakukan registrasi, flutter akan mengirim request POST berisi kredensial ke /auth/register/ dan Django akan membuat akun baru tanpa memberikan session. Saat pengguna melakukan Login, flutter mengirim request PSOT ke /auth/login/. Jika kredensial yang diterima valid, Django akan membuat session dan mengembalikan cookie session. Selanjutnya flutter akan menyimpan cookie tersebut dan mengubah state aplikasi menjadi terautentikasi. Terakhir, pada saat pengguna melakukan logout, flutter mengirim request POST ke /auth/logout/. Django akan mengakhiri session di sisi server dan CookieRequest akan menghapus cookie yang tersimpan di lokal sehingga state aplikasi kembali ke status logged out yang mengharuskan pengguna melakukan login kembali dengan menavigasi ke halaman login.
+
+## 6. Cara implementasi step by step.
+Saya mengerjakan tugas ini dengan mengimplementasi checklist yang diberikan. Langkah awal atau implementasi dimulai dengan melakukan konfigurasi awal, download dan set up package pbp_django_auth dan provider. Selanjutnya membuat instance CookieRequest di root aplikasi menggunakan Provider. 
+
+Selanjutnya saya mengimplementasikan fitur autentikasi dengan membuat sebuah app baru pada Django dan membuat fungsi login, register, dan logout yang akan diimplementasikan pada login.dart dan register.dart dengan requesst POST ke endpoint Django. Selanjutnya pemodelan data dilakukan dengan membuat class ProductEntry di Dart dan memastikan field field nya null safety pada fromJSON. 
+
+Setelah membuat model dan mengimplementasikan fitur autentikasi, saya membuat halaman daftar produk (ProductEntryListPage) menggunakan FutureBuilder yang memanggil request.get() dan mem parsing data yang diterima. Kemudian, halaman detail produk dibuat untuk menampilkan seluruh atribut pada model. 
+
+Hal terakhir adalah mengimplementasikan fitur logout dengan menambahkannya pada LeftDrawer yang memanggil request.logout() untuk mengakhiri session dan navigasi. Seluruh proses ini memastikan bahwa aplikasi The Corners telah mengimplementasikan semua checklist tugas.

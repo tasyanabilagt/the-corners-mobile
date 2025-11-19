@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:the_corners/menu.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:the_corners/screens/product_entry_list.dart';
+import 'package:the_corners/widgets/left_drawer.dart';
+
 class CreateProductPage extends StatefulWidget {
   const CreateProductPage({super.key});
 
@@ -10,273 +15,196 @@ class CreateProductPage extends StatefulWidget {
 class _CreateProductPageState extends State<CreateProductPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controller untuk setiap field
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _thumbnailController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
-  final TextEditingController _colorController = TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _brandController = TextEditingController();
 
   String? _selectedCategory;
   String? _selectedSize;
   bool _isFeatured = false;
 
-  final List<String> _categories = ['Shoes', 'Balls', 'Jerseys', 'Accessories'];
+  // Sesuai CATEGORY_CHOICES di Django
+  final List<String> _categories = ['bola', 'sepatu', 'jersey', 'aksesoris', 'bundle'];
   final List<String> _sizes = ['XS', 'S', 'M', 'L', 'XL'];
-
-  void _saveForm() {
-    if (_formKey.currentState!.validate()) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Product Saved Successfully"),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("🛍 Name: ${_nameController.text}"),
-                  Text("💰 Price: Rp${_priceController.text}"),
-                  Text("📦 Stock: ${_stockController.text} pcs"),
-                  Text("📏 Size: ${_selectedSize ?? '-'}"),
-                  Text("🎨 Color: ${_colorController.text}"),
-                  Text("⭐ Rating: ${_ratingController.text}"),
-                  Text("🏷 Category: ${_selectedCategory ?? '-'}"),
-                  Text("🖼 Thumbnail: ${_thumbnailController.text}"),
-                  Text("🔥 Featured: ${_isFeatured ? 'Yes' : 'No'}"),
-                  const SizedBox(height: 10),
-                  Text("📝 Description: ${_descriptionController.text}"),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // nutup dialog
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => MyHomePage()),
-                  ); // langsung ke Home
-                },
-                child: const Text("Close"),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  InputDecoration _inputDecoration(String label, {String? hint}) {
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF1E3A8A)),
-      ),
-      focusedBorder: const OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFF6B6B), width: 2),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: "The ",
-                style: TextStyle(
-                  color: Color(0xFFFF6B6B),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const TextSpan(
-                text: "Corners",
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ],
-          ),
-        ),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Add New Product')),
+      drawer: const LeftDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Add New Product",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    "Fill out the product details to add a new item to The Corners.",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Name
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: _inputDecoration("Product Name", hint: "e.g. Nike Air Zoom"),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return "Name cannot be empty";
-                      if (value.length < 3) return "Name too short";
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Price
-                  TextFormField(
-                    controller: _priceController,
-                    decoration: _inputDecoration("Price", hint: "e.g. 1500000"),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return "Price cannot be empty";
-                      final price = double.tryParse(value);
-                      if (price == null || price <= 0) return "Enter a valid positive price";
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Stock
-                  TextFormField(
-                    controller: _stockController,
-                    decoration: _inputDecoration("Stock", hint: "e.g. 30"),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return "Stock cannot be empty";
-                      final stock = int.tryParse(value);
-                      if (stock == null || stock < 0) return "Stock must be a positive integer";
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Size
-                  DropdownButtonFormField<String>(
-                    decoration: _inputDecoration("Size"),
-                    value: _selectedSize,
-                    items: _sizes
-                        .map((size) => DropdownMenuItem(
-                      value: size,
-                      child: Text(size),
-                    ))
-                        .toList(),
-                    onChanged: (value) => setState(() => _selectedSize = value),
-                    validator: (value) => value == null ? "Please select a size" : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Color
-                  TextFormField(
-                    controller: _colorController,
-                    decoration: _inputDecoration("Color", hint: "e.g. Red / Black"),
-                    validator: (value) =>
-                    value == null || value.isEmpty ? "Color cannot be empty" : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Rating
-                  TextFormField(
-                    controller: _ratingController,
-                    decoration: _inputDecoration("Rating (1–5)", hint: "e.g. 4.5"),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return "Rating cannot be empty";
-                      final rating = double.tryParse(value);
-                      if (rating == null || rating < 0 || rating > 5) {
-                        return "Rating must be between 0 and 5";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Category
-                  DropdownButtonFormField<String>(
-                    decoration: _inputDecoration("Category"),
-                    value: _selectedCategory,
-                    items: _categories
-                        .map((cat) => DropdownMenuItem(
-                      value: cat,
-                      child: Text(cat),
-                    ))
-                        .toList(),
-                    onChanged: (value) => setState(() => _selectedCategory = value),
-                    validator: (value) => value == null ? "Please select a category" : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Thumbnail URL
-                  TextFormField(
-                    controller: _thumbnailController,
-                    decoration: _inputDecoration("Thumbnail URL", hint: "e.g. https://..."),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return "Thumbnail cannot be empty";
-                      if (!Uri.tryParse(value)!.isAbsolute) return "Enter a valid URL";
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Description
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: _inputDecoration("Description", hint: "Enter product details..."),
-                    maxLines: 3,
-                    validator: (value) =>
-                    value == null || value.isEmpty ? "Description cannot be empty" : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Is Featured
-                  CheckboxListTile(
-                    title: const Text("Mark as Featured Product"),
-                    activeColor: const Color(0xFFFF6B6B),
-                    value: _isFeatured,
-                    onChanged: (value) => setState(() => _isFeatured = value ?? false),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Save Button
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _saveForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B6B),
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        "Save Product",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: "Product Name",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return "Name cannot be empty";
+                  return null;
+                },
               ),
-            ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _priceController,
+                decoration: const InputDecoration(
+                  labelText: "Price",
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return "Price cannot be empty";
+                  if (int.tryParse(value) == null) return "Price must be a number";
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: "Description",
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return "Description cannot be empty";
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _stockController,
+                decoration: const InputDecoration(
+                  labelText: "Stock",
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return "Stock cannot be empty";
+                  if (int.tryParse(value) == null) return "Stock must be a number";
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _ratingController,
+                decoration: const InputDecoration(
+                  labelText: "Rating (0-5)",
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: "Category",
+                  border: OutlineInputBorder(),
+                ),
+                value: _selectedCategory,
+                items: _categories.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (newValue) => setState(() => _selectedCategory = newValue),
+                validator: (value) => value == null ? "Please select a category" : null,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: "Size (Optional)",
+                  border: OutlineInputBorder(),
+                ),
+                value: _selectedSize,
+                items: _sizes.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (newValue) => setState(() => _selectedSize = newValue),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _colorController,
+                decoration: const InputDecoration(
+                  labelText: "Color (Optional)",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _thumbnailController,
+                decoration: const InputDecoration(
+                  labelText: "Thumbnail URL",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              CheckboxListTile(
+                title: const Text("Is Featured?"),
+                value: _isFeatured,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _isFeatured = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final response = await request.postJson(
+                      "http://localhost:8000/create-flutter/",
+                      jsonEncode(<String, dynamic>{
+                        'name': _nameController.text,
+                        'price': int.parse(_priceController.text),
+                        'description': _descriptionController.text,
+                        'stock': int.parse(_stockController.text),
+                        'rating': int.tryParse(_ratingController.text) ?? 0,
+                        'category': _selectedCategory,
+                        'thumbnail': _thumbnailController.text,
+                        'is_featured': _isFeatured,
+                        'size': _selectedSize ?? '',
+                        'color': _colorController.text,
+                        'brand': _brandController.text,
+                      }),
+                    );
+                    if (context.mounted) {
+                      if (response['status'] == 'success') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Product saved successfully!")),
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ProductEntryListPage()),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Failed to save product.")),
+                        );
+                      }
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                child: const Text("Save Product"),
+              ),
+            ],
           ),
         ),
       ),
